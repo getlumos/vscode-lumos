@@ -148,6 +148,153 @@ function findErrorLocation(errorMessage: string, document: vscode.TextDocument):
 }
 
 /**
+ * Code action provider for LUMOS quick fixes
+ */
+class LumosCodeActionProvider implements vscode.CodeActionProvider {
+    provideCodeActions(
+        document: vscode.TextDocument,
+        range: vscode.Range | vscode.Selection,
+        context: vscode.CodeActionContext,
+        token: vscode.CancellationToken
+    ): vscode.CodeAction[] {
+        const codeActions: vscode.CodeAction[] = [];
+
+        // Process diagnostics in the current range
+        for (const diagnostic of context.diagnostics) {
+            if (diagnostic.source !== 'LUMOS') {
+                continue;
+            }
+
+            const message = diagnostic.message.toLowerCase();
+
+            // Quick fix: Missing colon
+            if (message.includes('expected `:`') || message.includes('expected ":"')) {
+                const fix = this.createAddColonFix(document, diagnostic);
+                if (fix) codeActions.push(fix);
+            }
+
+            // Quick fix: Missing semicolon
+            if (message.includes('expected `;`') || message.includes('expected ";"') || message.includes('semicolon')) {
+                const fix = this.createAddSemicolonFix(document, diagnostic);
+                if (fix) codeActions.push(fix);
+            }
+
+            // Quick fix: Wrong type casing (pubkey → PublicKey)
+            if (message.includes('pubkey') || message.includes('unknown type')) {
+                const fix = this.createFixTypeCasingFix(document, diagnostic);
+                if (fix) codeActions.push(fix);
+            }
+
+            // Quick fix: Missing #[solana] attribute
+            if (message.includes('solana') && message.includes('attribute')) {
+                const fix = this.createAddSolanaAttributeFix(document, diagnostic);
+                if (fix) codeActions.push(fix);
+            }
+        }
+
+        return codeActions;
+    }
+
+    private createAddColonFix(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
+        const line = document.lineAt(diagnostic.range.start.line);
+        const lineText = line.text;
+
+        // Find field name (word before cursor)
+        const match = /(\w+)\s+(\w+)/.exec(lineText);
+        if (!match) return undefined;
+
+        const fieldName = match[1];
+        const insertPos = new vscode.Position(diagnostic.range.start.line, line.text.indexOf(fieldName) + fieldName.length);
+
+        const fix = new vscode.CodeAction('Add colon after field name', vscode.CodeActionKind.QuickFix);
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.insert(document.uri, insertPos, ':');
+        fix.diagnostics = [diagnostic];
+        fix.isPreferred = true;
+
+        return fix;
+    }
+
+    private createAddSemicolonFix(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
+        const line = document.lineAt(diagnostic.range.start.line);
+        const lineText = line.text.trimEnd();
+
+        // Insert semicolon at end of line
+        const insertPos = new vscode.Position(diagnostic.range.start.line, lineText.length);
+
+        const fix = new vscode.CodeAction('Add semicolon at end of line', vscode.CodeActionKind.QuickFix);
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.insert(document.uri, insertPos, ';');
+        fix.diagnostics = [diagnostic];
+        fix.isPreferred = true;
+
+        return fix;
+    }
+
+    private createFixTypeCasingFix(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
+        const line = document.lineAt(diagnostic.range.start.line);
+        const lineText = line.text;
+
+        // Look for common type casing errors
+        const typeMappings: { [key: string]: string } = {
+            'pubkey': 'PublicKey',
+            'publickey': 'PublicKey',
+            'signature': 'Signature',
+            'vec': 'Vec',
+            'option': 'Option',
+            'string': 'String'
+        };
+
+        for (const [wrong, correct] of Object.entries(typeMappings)) {
+            const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
+            if (regex.test(lineText)) {
+                const fix = new vscode.CodeAction(`Change '${wrong}' to '${correct}'`, vscode.CodeActionKind.QuickFix);
+                fix.edit = new vscode.WorkspaceEdit();
+
+                const newText = lineText.replace(regex, correct);
+                const range = new vscode.Range(
+                    new vscode.Position(diagnostic.range.start.line, 0),
+                    new vscode.Position(diagnostic.range.start.line, lineText.length)
+                );
+
+                fix.edit.replace(document.uri, range, newText);
+                fix.diagnostics = [diagnostic];
+                fix.isPreferred = true;
+
+                return fix;
+            }
+        }
+
+        return undefined;
+    }
+
+    private createAddSolanaAttributeFix(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
+        const line = document.lineAt(diagnostic.range.start.line);
+
+        // Find the struct declaration line
+        let structLine = diagnostic.range.start.line;
+        for (let i = diagnostic.range.start.line; i < Math.min(diagnostic.range.start.line + 5, document.lineCount); i++) {
+            const lineText = document.lineAt(i).text;
+            if (lineText.includes('struct')) {
+                structLine = i;
+                break;
+            }
+        }
+
+        const indentation = document.lineAt(structLine).text.match(/^\s*/)?.[0] || '';
+        const insertPos = new vscode.Position(structLine, 0);
+
+        const fix = new vscode.CodeAction('Add #[solana] attribute', vscode.CodeActionKind.QuickFix);
+        fix.edit = new vscode.WorkspaceEdit();
+        fix.edit.insert(document.uri, insertPos, `${indentation}#[solana]\n`);
+        fix.diagnostics = [diagnostic];
+        fix.isPreferred = true;
+
+        return fix;
+    }
+}
+
+/**
  * Document formatting provider for LUMOS language
  */
 class LumosFormattingProvider implements vscode.DocumentFormattingEditProvider {
@@ -490,6 +637,14 @@ export function activate(context: vscode.ExtensionContext) {
         new LumosFormattingProvider()
     );
     context.subscriptions.push(formattingProvider);
+
+    // Register code action provider for quick fixes
+    const codeActionProvider = vscode.languages.registerCodeActionsProvider(
+        'lumos',
+        new LumosCodeActionProvider(),
+        { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }
+    );
+    context.subscriptions.push(codeActionProvider);
 
     // Register commands
     const generateCommand = vscode.commands.registerCommand('lumos.generate', async () => {

@@ -2,6 +2,55 @@
 
 All notable changes to the "lumos" extension will be documented in this file.
 
+## [0.5.0] - 2025-11-19
+
+### Added
+- **Quick Fix Suggestions**: One-click fixes for common LUMOS syntax errors
+  - **Add Missing Colon**: Automatically insert `:` after field name
+    - Error: `wallet PublicKey` → Fix: `wallet: PublicKey`
+  - **Add Missing Semicolon**: Insert `;` at end of line
+    - Error: `level: u16` → Fix: `level: u16;`
+  - **Fix Type Casing**: Correct common type name errors
+    - `pubkey` → `PublicKey`
+    - `signature` → `Signature`
+    - `vec` → `Vec`
+    - `option` → `Option`
+    - `string` → `String`
+  - **Add Missing Attributes**: Insert `#[solana]` above struct
+- **Lightbulb Icon**: Appears next to fixable errors
+- **Preferred Fixes**: Most relevant fix pre-selected
+- **One-Click Application**: Apply fixes instantly with Enter key
+
+### Changed
+- Enhanced developer experience with intelligent error recovery
+- Integrated with existing error diagnostics (v0.2.0)
+
+### Technical
+- Implemented `CodeActionProvider` for quick fixes
+- 5+ quick fix patterns
+- Context-aware fix suggestions based on error messages
+- Integrated with diagnostics API
+
+### User Experience
+```
+// User types:
+struct Player {
+    wallet PublicKey    // Error detected
+}
+
+// VSCode shows:
+💡 Quick Fix available
+   1. Add colon after field name
+   2. Add semicolon at end of line
+
+// User presses Ctrl+. or clicks lightbulb
+// User selects "Add colon after field name"
+// Result:
+struct Player {
+    wallet: PublicKey;  // Fixed!
+}
+```
+
 ## [0.4.0] - 2025-11-19
 
 ### Added

@@ -2,7 +2,7 @@
   "name": "lumos",
   "displayName": "LUMOS Language Support",
   "description": "Syntax highlighting, IntelliSense, and validation for LUMOS schema language",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "getlumos",
   "author": {
     "name": "RECTOR",
