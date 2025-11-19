@@ -1,7 +1,7 @@
 # CLAUDE.md - LUMOS VSCode Extension
 
 **Repository:** https://github.com/getlumos/vscode-lumos
-**Website:** https://lumos-lang.com
+**Website:** https://lumos-lang.org
 **Purpose:** VSCode extension providing syntax highlighting, snippets, and commands for `.lumos` files
 
 ---
@@ -138,7 +138,7 @@ code --install-extension lumos-0.1.0.vsix
 - [x] README documentation complete
 - [x] CHANGELOG added
 - [x] Dual MIT/Apache-2.0 licensed
-- [x] Homepage updated (lumos-lang.com)
+- [x] Homepage updated (lumos-lang.org)
 - [ ] Published to VS Marketplace
 
 ---

@@ -14,7 +14,7 @@
     "type": "git",
     "url": "https://github.com/getlumos/vscode-lumos"
   },
-  "homepage": "https://lumos-lang.com",
+  "homepage": "https://lumos-lang.org",
   "engines": {
     "vscode": "^1.75.0"
   },
