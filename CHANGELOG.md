@@ -2,6 +2,55 @@
 
 All notable changes to the "lumos" extension will be documented in this file.
 
+## [0.4.0] - 2025-11-19
+
+### Added
+- **Format-on-Save Support**: Automatic code formatting for .lumos files
+  - **Consistent Indentation**: Configurable indent size (2 or 4 spaces, default 4)
+  - **Attribute Sorting**: Alphabetically sorts attributes (#[account], #[derive], #[solana])
+  - **Field Alignment**: Aligns colons in struct fields for better readability
+  - **Smart Formatting**: Preserves comments and handles nested structures
+- **Manual Format Command**: Use Shift+Alt+F (or Cmd+Shift+I on Mac) to format
+- **Configurable Settings**:
+  - `lumos.format.indentSize` - Choose between 2 or 4 spaces (default: 4)
+  - `lumos.format.sortAttributes` - Enable/disable attribute sorting (default: true)
+  - `lumos.format.alignFields` - Enable/disable field alignment (default: true)
+- Format-on-save works with VSCode's `editor.formatOnSave` setting
+
+### Changed
+- Enhanced code quality with automatic formatting
+- Improved readability with aligned struct fields
+
+### Technical
+- Implemented `DocumentFormattingEditProvider` for LUMOS language
+- Smart indentation tracking for nested structures
+- Field alignment algorithm for struct fields
+
+### Example
+**Before formatting**:
+```lumos
+#[derive(Debug)]
+#[solana]
+#[account]
+struct PlayerAccount {
+wallet: PublicKey,
+   level:u16,
+experience:      u64,
+}
+```
+
+**After formatting**:
+```lumos
+#[account]
+#[derive(Debug)]
+#[solana]
+struct PlayerAccount {
+    wallet:     PublicKey,
+    level:      u16,
+    experience: u64,
+}
+```
+
 ## [0.3.0] - 2025-11-19
 
 ### Added

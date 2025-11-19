@@ -148,6 +148,171 @@ function findErrorLocation(errorMessage: string, document: vscode.TextDocument):
 }
 
 /**
+ * Document formatting provider for LUMOS language
+ */
+class LumosFormattingProvider implements vscode.DocumentFormattingEditProvider {
+    provideDocumentFormattingEdits(
+        document: vscode.TextDocument,
+        options: vscode.FormattingOptions,
+        token: vscode.CancellationToken
+    ): vscode.TextEdit[] {
+        const config = vscode.workspace.getConfiguration('lumos');
+        const indentSize = config.get<number>('format.indentSize', 4);
+        const sortAttributes = config.get<boolean>('format.sortAttributes', true);
+        const alignFields = config.get<boolean>('format.alignFields', true);
+
+        const formattedText = this.formatDocument(
+            document.getText(),
+            indentSize,
+            sortAttributes,
+            alignFields
+        );
+
+        // Return a single edit replacing entire document
+        const fullRange = new vscode.Range(
+            document.positionAt(0),
+            document.positionAt(document.getText().length)
+        );
+
+        return [vscode.TextEdit.replace(fullRange, formattedText)];
+    }
+
+    private formatDocument(
+        text: string,
+        indentSize: number,
+        sortAttributes: boolean,
+        alignFields: boolean
+    ): string {
+        const lines = text.split('\n');
+        const formatted: string[] = [];
+        let indentLevel = 0;
+        let inStruct = false;
+        let structFields: string[] = [];
+        let attributes: string[] = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            let line = lines[i].trim();
+
+            // Skip empty lines
+            if (line === '') {
+                formatted.push('');
+                continue;
+            }
+
+            // Collect attributes
+            if (line.startsWith('#[')) {
+                attributes.push(line);
+                continue;
+            }
+
+            // Flush sorted attributes before struct/enum
+            if (attributes.length > 0 && (line.startsWith('struct') || line.startsWith('enum') || line.startsWith('pub'))) {
+                if (sortAttributes) {
+                    attributes.sort();
+                }
+                attributes.forEach(attr => {
+                    formatted.push(' '.repeat(indentLevel * indentSize) + attr);
+                });
+                attributes = [];
+            }
+
+            // Handle closing braces
+            if (line === '}' || line.startsWith('}')) {
+                // If we were in a struct, flush fields with alignment
+                if (inStruct && structFields.length > 0 && alignFields) {
+                    const alignedFields = this.alignStructFields(structFields, indentLevel + 1, indentSize);
+                    formatted.push(...alignedFields);
+                    structFields = [];
+                }
+                indentLevel--;
+                inStruct = false;
+                formatted.push(' '.repeat(indentLevel * indentSize) + line);
+                continue;
+            }
+
+            // Handle struct/enum declarations
+            if (line.startsWith('struct') || line.startsWith('enum') || line.startsWith('pub struct') || line.startsWith('pub enum')) {
+                formatted.push(' '.repeat(indentLevel * indentSize) + line);
+                if (line.endsWith('{')) {
+                    indentLevel++;
+                    if (line.includes('struct')) {
+                        inStruct = true;
+                    }
+                }
+                continue;
+            }
+
+            // Handle opening braces
+            if (line === '{') {
+                indentLevel++;
+                formatted.push(' '.repeat((indentLevel - 1) * indentSize) + line);
+                if (formatted[formatted.length - 2] && formatted[formatted.length - 2].includes('struct')) {
+                    inStruct = true;
+                }
+                continue;
+            }
+
+            // Collect struct fields for alignment
+            if (inStruct && line.includes(':')) {
+                structFields.push(line);
+                continue;
+            }
+
+            // Handle enum variants
+            if (!inStruct) {
+                formatted.push(' '.repeat(indentLevel * indentSize) + line);
+                continue;
+            }
+
+            // Default: just indent
+            formatted.push(' '.repeat(indentLevel * indentSize) + line);
+        }
+
+        // Flush any remaining struct fields
+        if (structFields.length > 0 && alignFields) {
+            const alignedFields = this.alignStructFields(structFields, indentLevel, indentSize);
+            formatted.push(...alignedFields);
+        }
+
+        // Flush any remaining attributes
+        if (attributes.length > 0) {
+            if (sortAttributes) {
+                attributes.sort();
+            }
+            attributes.forEach(attr => {
+                formatted.push(' '.repeat(indentLevel * indentSize) + attr);
+            });
+        }
+
+        return formatted.join('\n');
+    }
+
+    private alignStructFields(fields: string[], indentLevel: number, indentSize: number): string[] {
+        // Find the longest field name to align colons
+        let maxFieldLength = 0;
+        const parsedFields = fields.map(field => {
+            const colonIndex = field.indexOf(':');
+            if (colonIndex > 0) {
+                const fieldName = field.substring(0, colonIndex).trim();
+                maxFieldLength = Math.max(maxFieldLength, fieldName.length);
+                return { fieldName, rest: field.substring(colonIndex).trim() };
+            }
+            return { fieldName: field, rest: '' };
+        });
+
+        // Align fields
+        return parsedFields.map(({ fieldName, rest }) => {
+            const indent = ' '.repeat(indentLevel * indentSize);
+            if (rest) {
+                const padding = ' '.repeat(maxFieldLength - fieldName.length);
+                return `${indent}${fieldName}${padding}: ${rest.substring(1).trim()}`;
+            }
+            return `${indent}${fieldName}`;
+        });
+    }
+}
+
+/**
  * Auto-completion provider for LUMOS language
  */
 class LumosCompletionProvider implements vscode.CompletionItemProvider {
@@ -318,6 +483,13 @@ export function activate(context: vscode.ExtensionContext) {
         '.', '<', '#', '[', ':'
     );
     context.subscriptions.push(completionProvider);
+
+    // Register document formatting provider
+    const formattingProvider = vscode.languages.registerDocumentFormattingEditProvider(
+        'lumos',
+        new LumosFormattingProvider()
+    );
+    context.subscriptions.push(formattingProvider);
 
     // Register commands
     const generateCommand = vscode.commands.registerCommand('lumos.generate', async () => {

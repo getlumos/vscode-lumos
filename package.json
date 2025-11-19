@@ -2,7 +2,7 @@
   "name": "lumos",
   "displayName": "LUMOS Language Support",
   "description": "Syntax highlighting, IntelliSense, and validation for LUMOS schema language",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "getlumos",
   "author": {
     "name": "RECTOR",
@@ -74,6 +74,22 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically generate Rust/TypeScript on save"
+        },
+        "lumos.format.indentSize": {
+          "type": "number",
+          "default": 4,
+          "enum": [2, 4],
+          "description": "Number of spaces for indentation (2 or 4)"
+        },
+        "lumos.format.sortAttributes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sort attributes alphabetically"
+        },
+        "lumos.format.alignFields": {
+          "type": "boolean",
+          "default": true,
+          "description": "Align colons in struct fields"
         }
       }
     },
