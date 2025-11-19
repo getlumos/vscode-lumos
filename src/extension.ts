@@ -147,12 +147,177 @@ function findErrorLocation(errorMessage: string, document: vscode.TextDocument):
     );
 }
 
+/**
+ * Auto-completion provider for LUMOS language
+ */
+class LumosCompletionProvider implements vscode.CompletionItemProvider {
+    provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+        context: vscode.CompletionContext
+    ): vscode.CompletionItem[] {
+        const linePrefix = document.lineAt(position).text.substring(0, position.character);
+        const completions: vscode.CompletionItem[] = [];
+
+        // Check context to provide appropriate completions
+        if (this.isInAttribute(linePrefix)) {
+            completions.push(...this.getAttributeCompletions());
+        } else if (this.isAfterColon(linePrefix)) {
+            completions.push(...this.getTypeCompletions());
+        } else if (this.isAtLineStart(linePrefix)) {
+            completions.push(...this.getKeywordCompletions());
+            completions.push(...this.getAttributeCompletions());
+        } else {
+            // Provide all completions
+            completions.push(...this.getTypeCompletions());
+            completions.push(...this.getKeywordCompletions());
+            completions.push(...this.getAttributeCompletions());
+        }
+
+        return completions;
+    }
+
+    private isInAttribute(linePrefix: string): boolean {
+        return linePrefix.includes('#[') && !linePrefix.includes(']');
+    }
+
+    private isAfterColon(linePrefix: string): boolean {
+        return linePrefix.trim().endsWith(':');
+    }
+
+    private isAtLineStart(linePrefix: string): boolean {
+        return linePrefix.trim().length === 0;
+    }
+
+    private getTypeCompletions(): vscode.CompletionItem[] {
+        const types: vscode.CompletionItem[] = [];
+
+        // Primitive unsigned types
+        const unsignedTypes = ['u8', 'u16', 'u32', 'u64', 'u128'];
+        unsignedTypes.forEach(type => {
+            const item = new vscode.CompletionItem(type, vscode.CompletionItemKind.Keyword);
+            item.detail = `Unsigned ${type.substring(1)}-bit integer`;
+            item.documentation = new vscode.MarkdownString(`Primitive unsigned integer type (${type})`);
+            types.push(item);
+        });
+
+        // Primitive signed types
+        const signedTypes = ['i8', 'i16', 'i32', 'i64', 'i128'];
+        signedTypes.forEach(type => {
+            const item = new vscode.CompletionItem(type, vscode.CompletionItemKind.Keyword);
+            item.detail = `Signed ${type.substring(1)}-bit integer`;
+            item.documentation = new vscode.MarkdownString(`Primitive signed integer type (${type})`);
+            types.push(item);
+        });
+
+        // Boolean
+        const boolItem = new vscode.CompletionItem('bool', vscode.CompletionItemKind.Keyword);
+        boolItem.detail = 'Boolean type';
+        boolItem.documentation = new vscode.MarkdownString('Boolean value (true/false)');
+        types.push(boolItem);
+
+        // String
+        const stringItem = new vscode.CompletionItem('String', vscode.CompletionItemKind.Class);
+        stringItem.detail = 'String type';
+        stringItem.documentation = new vscode.MarkdownString('UTF-8 encoded string');
+        types.push(stringItem);
+
+        // Solana types
+        const pubkeyItem = new vscode.CompletionItem('PublicKey', vscode.CompletionItemKind.Class);
+        pubkeyItem.detail = 'Solana public key';
+        pubkeyItem.documentation = new vscode.MarkdownString('Solana account public key (32 bytes)');
+        types.push(pubkeyItem);
+
+        const signatureItem = new vscode.CompletionItem('Signature', vscode.CompletionItemKind.Class);
+        signatureItem.detail = 'Solana signature';
+        signatureItem.documentation = new vscode.MarkdownString('Cryptographic signature (64 bytes)');
+        types.push(signatureItem);
+
+        // Complex types
+        const vecItem = new vscode.CompletionItem('Vec', vscode.CompletionItemKind.Class);
+        vecItem.detail = 'Vector type';
+        vecItem.documentation = new vscode.MarkdownString('Dynamic array: `Vec<T>`\n\nExample: `Vec<PublicKey>`, `Vec<u64>`');
+        vecItem.insertText = new vscode.SnippetString('Vec<$1>$0');
+        types.push(vecItem);
+
+        const optionItem = new vscode.CompletionItem('Option', vscode.CompletionItemKind.Class);
+        optionItem.detail = 'Optional type';
+        optionItem.documentation = new vscode.MarkdownString('Optional value: `Option<T>`\n\nExample: `Option<PublicKey>`, `Option<u64>`');
+        optionItem.insertText = new vscode.SnippetString('Option<$1>$0');
+        types.push(optionItem);
+
+        return types;
+    }
+
+    private getKeywordCompletions(): vscode.CompletionItem[] {
+        const keywords: vscode.CompletionItem[] = [];
+
+        // struct keyword
+        const structItem = new vscode.CompletionItem('struct', vscode.CompletionItemKind.Keyword);
+        structItem.detail = 'Define a struct';
+        structItem.documentation = new vscode.MarkdownString('Define a data structure\n\n```lumos\nstruct MyStruct {\n    field: Type,\n}\n```');
+        structItem.insertText = new vscode.SnippetString('struct ${1:Name} {\n    ${2:field}: ${3:Type},\n}$0');
+        keywords.push(structItem);
+
+        // enum keyword
+        const enumItem = new vscode.CompletionItem('enum', vscode.CompletionItemKind.Keyword);
+        enumItem.detail = 'Define an enum';
+        enumItem.documentation = new vscode.MarkdownString('Define an enumeration\n\n```lumos\nenum MyEnum {\n    Variant1,\n    Variant2,\n}\n```');
+        enumItem.insertText = new vscode.SnippetString('enum ${1:Name} {\n    ${2:Variant},\n}$0');
+        keywords.push(enumItem);
+
+        // pub keyword
+        const pubItem = new vscode.CompletionItem('pub', vscode.CompletionItemKind.Keyword);
+        pubItem.detail = 'Public visibility';
+        pubItem.documentation = new vscode.MarkdownString('Make item public');
+        keywords.push(pubItem);
+
+        return keywords;
+    }
+
+    private getAttributeCompletions(): vscode.CompletionItem[] {
+        const attributes: vscode.CompletionItem[] = [];
+
+        // #[solana]
+        const solanaItem = new vscode.CompletionItem('#[solana]', vscode.CompletionItemKind.Property);
+        solanaItem.detail = 'Solana attribute';
+        solanaItem.documentation = new vscode.MarkdownString('Mark type for Solana-specific code generation');
+        solanaItem.insertText = new vscode.SnippetString('#[solana]');
+        attributes.push(solanaItem);
+
+        // #[account]
+        const accountItem = new vscode.CompletionItem('#[account]', vscode.CompletionItemKind.Property);
+        accountItem.detail = 'Anchor account attribute';
+        accountItem.documentation = new vscode.MarkdownString('Mark struct as Anchor account');
+        accountItem.insertText = new vscode.SnippetString('#[account]');
+        attributes.push(accountItem);
+
+        // #[derive(...)]
+        const deriveItem = new vscode.CompletionItem('#[derive]', vscode.CompletionItemKind.Property);
+        deriveItem.detail = 'Derive traits';
+        deriveItem.documentation = new vscode.MarkdownString('Derive common traits\n\nExample: `#[derive(Debug, Clone)]`');
+        deriveItem.insertText = new vscode.SnippetString('#[derive(${1:Debug})]');
+        attributes.push(deriveItem);
+
+        return attributes;
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('LUMOS extension activated');
 
     // Create diagnostic collection
     diagnosticCollection = vscode.languages.createDiagnosticCollection('lumos');
     context.subscriptions.push(diagnosticCollection);
+
+    // Register auto-completion provider
+    const completionProvider = vscode.languages.registerCompletionItemProvider(
+        'lumos',
+        new LumosCompletionProvider(),
+        '.', '<', '#', '[', ':'
+    );
+    context.subscriptions.push(completionProvider);
 
     // Register commands
     const generateCommand = vscode.commands.registerCommand('lumos.generate', async () => {
