@@ -258,9 +258,41 @@ code --install-extension lumos-0.1.0.vsix
 
 ---
 
+## Future Development
+
+### Roadmap Highlights (See ROADMAP.md)
+
+**v0.6.0 - LSP Server** (Week 4)
+- Replace CLI validation with Language Server Protocol
+- Real-time diagnostics without debounce delay
+- Foundation for all advanced features
+
+**v0.7.0 - Navigation** (Week 7)
+- Go to Definition (jump to struct/enum)
+- Hover documentation with type info
+- Find All References
+
+**v0.8.0 - Intelligent Completion** (Week 10)
+- Context-aware IntelliSense
+- Auto-import suggestions
+- 50+ completion items
+
+**v1.0.0 - Solana Superpowers** (Week 24)
+- IDL import from Solana programs
+- Account inspector and deserializer
+- PDA calculator with code lens
+- 30+ code actions/assists
+- Schema visualization
+- Borsh size calculator
+
+**Target**: Match rust-analyzer's excellence with Solana-specific innovations
+
+---
+
 ## Related Repositories
 
 - **lumos** - Core library and CLI (required for commands)
+- **lumos-lsp** - Language Server Protocol implementation (planned v0.6.0)
 - **awesome-lumos** - Community examples using this extension
 
 ---
@@ -286,10 +318,19 @@ code --install-extension lumos-0.1.0.vsix
 
 ### Next Steps
 1. ✅ ~~Publish to VS Marketplace~~ **DONE!**
-2. Commit current CLAUDE.md updates
-3. Announce release on lumos-lang.org
-4. Monitor user feedback and ratings
-5. Plan v0.6.0 features based on community needs
+2. ✅ ~~Create comprehensive roadmap~~ **DONE!** (See ROADMAP.md)
+3. **Phase 1: LSP Foundation** (v0.6.0 - v0.8.0)
+   - Build `lumos-lsp` server in Rust
+   - Implement real-time diagnostics, go-to-definition, hover, intelligent completion
+   - Timeline: ~8-10 weeks
+4. **Phase 2: Advanced Features** (v0.9.0 - v1.0.0)
+   - Inlay hints, semantic highlighting, 30+ code actions
+   - Solana-specific superpowers (IDL import, account inspector, PDA calculator)
+   - Timeline: ~10-12 weeks
+5. Announce v0.5.0 release on lumos-lang.org
+6. Monitor user feedback and prioritize based on roadmap
+
+**See ROADMAP.md for complete feature timeline and architecture details.**
 
 ---
 
