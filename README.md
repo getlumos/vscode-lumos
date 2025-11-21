@@ -1,5 +1,7 @@
 # LUMOS Language Support for VSCode
 
+> **Write once. Deploy Everywhere.**
+
 Official VSCode extension for the LUMOS schema language - a type-safe, cross-language schema definition language for Solana development.
 
 ## Features
