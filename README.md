@@ -6,6 +6,17 @@ Official VSCode extension for the LUMOS schema language - a type-safe, cross-lan
 
 ## Features
 
+### 🚀 Language Server Protocol (Coming Soon!)
+
+**Full IDE support powered by `lumos-lsp`** - Currently in development ([#1](https://github.com/getlumos/vscode-lumos/issues/1)):
+
+- 🔴 **Real-time Diagnostics** - Instant feedback on syntax errors and undefined types
+- ⚡ **Intelligent Auto-completion** - Context-aware suggestions for Solana types, primitives, and attributes
+- 📖 **Hover Documentation** - Type information and docs on hover
+- 🎯 **Auto-install** - One-click setup, no manual configuration needed
+
+The LUMOS Language Server has been fully implemented and tested (142 passing tests). Once integrated, the extension will provide a seamless, production-ready IDE experience.
+
 ### 🎨 Syntax Highlighting
 Beautiful syntax highlighting for `.lumos` files with support for:
 - Keywords (`struct`, `enum`, `pub`, etc.)
@@ -35,6 +46,8 @@ Quick snippets for common patterns:
 
 ## Requirements
 
+### Current Features
+
 To use code generation features, you need to have the LUMOS CLI installed:
 
 ```bash
@@ -43,10 +56,14 @@ cargo install lumos-cli
 
 Or build from source:
 ```bash
-git clone https://github.com/RECTOR-LABS/lumos
-cd lumos/packages/cli
-cargo install --path .
+git clone https://github.com/getlumos/lumos
+cd lumos
+cargo install --path packages/cli
 ```
+
+### Upcoming LSP Features (Auto-installed)
+
+Once LSP integration is complete ([#1](https://github.com/getlumos/vscode-lumos/issues/1)), the extension will automatically install `lumos-lsp` on first use. No manual setup required!
 
 ## Usage
 
@@ -93,9 +110,17 @@ This extension contributes the following settings:
 * `lumos.validation.enabled`: Enable/disable LUMOS schema validation
 * `lumos.codeGeneration.autoGenerate`: Automatically generate Rust/TypeScript on save
 
-## Known Issues
+## Roadmap
 
-- Language server features (advanced IntelliSense, real-time validation) are planned for future releases
+- [x] Syntax highlighting and code snippets
+- [x] Code generation commands
+- [x] Language Server Protocol server implementation ([getlumos/lumos#45](https://github.com/getlumos/lumos/issues/45))
+- [ ] LSP integration into VSCode extension ([#1](https://github.com/getlumos/vscode-lumos/issues/1))
+- [ ] Go to definition
+- [ ] Find references
+- [ ] Rename symbol
+
+**Track progress:** See [ROADMAP.md](ROADMAP.md) for detailed timeline
 
 ## Release Notes
 
@@ -111,7 +136,13 @@ Initial release of LUMOS VSCode extension:
 
 ## Contributing
 
-Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/RECTOR-LABS/lumos/issues).
+Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/getlumos/vscode-lumos/issues).
+
+## Related Repositories
+
+- **LUMOS Core:** https://github.com/getlumos/lumos
+- **Language Server:** Published as `lumos-lsp` on crates.io (coming soon)
+- **Documentation:** https://lumos-lang.org
 
 ## License
 
