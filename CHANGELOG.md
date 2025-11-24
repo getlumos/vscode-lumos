@@ -1,193 +1,92 @@
-# Change Log
+# Changelog
 
-All notable changes to the "lumos" extension will be documented in this file.
+All notable changes to the LUMOS VSCode extension will be documented in this file.
 
-## [0.5.0] - 2025-11-19
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.6.0] - 2025-11-24
 
 ### Added
-- **Quick Fix Suggestions**: One-click fixes for common LUMOS syntax errors
-  - **Add Missing Colon**: Automatically insert `:` after field name
-    - Error: `wallet PublicKey` → Fix: `wallet: PublicKey`
-  - **Add Missing Semicolon**: Insert `;` at end of line
-    - Error: `level: u16` → Fix: `level: u16;`
-  - **Fix Type Casing**: Correct common type name errors
-    - `pubkey` → `PublicKey`
-    - `signature` → `Signature`
-    - `vec` → `Vec`
-    - `option` → `Option`
-    - `string` → `String`
-  - **Add Missing Attributes**: Insert `#[solana]` above struct
-- **Lightbulb Icon**: Appears next to fixable errors
-- **Preferred Fixes**: Most relevant fix pre-selected
-- **One-Click Application**: Apply fixes instantly with Enter key
+
+#### Language Server Protocol Integration
+- **Full LSP Support** - Integrated `lumos-lsp` Language Server for production-ready IDE experience
+- **Real-time Diagnostics** - Instant feedback on syntax errors, undefined types, and schema validation
+- **Intelligent Auto-completion** - Context-aware suggestions for:
+  - Solana types (`PublicKey`, `Signature`, `Keypair`)
+  - Primitives (`u8`-`u128`, `i8`-`i128`, `bool`, `String`)
+  - Complex types (`Vec<T>`, `Option<T>`)
+  - Attributes (`#[solana]`, `#[account]`, `#[key]`, `#[max]`, `#[deprecated]`)
+  - Keywords (`struct`, `enum`)
+- **Hover Documentation** - Rich type information and inline documentation on hover
+- **Auto-install** - Automatic one-click installation of `lumos-lsp` server when extension activates
+- **LSP Configuration Settings**:
+  - `lumos.lsp.enable` - Enable/disable LSP integration (default: `true`)
+  - `lumos.lsp.path` - Custom path to lumos-lsp binary (default: `"lumos-lsp"`)
+  - `lumos.lsp.autoInstall` - Auto-install lumos-lsp if not found (default: `true`)
+  - `lumos.lsp.trace.server` - Debug LSP communication (default: `"off"`)
+
+#### Documentation Improvements
+- **Smart Editing Features Documentation** - Comprehensive docs for:
+  - Bracket matching and navigation
+  - Auto-closing pairs behavior
+  - Smart indentation rules
+  - Code folding with region markers
+  - Keyboard shortcuts and usage examples
+- **Type System Reference** - Complete type mapping table showing:
+  - LUMOS → Rust → TypeScript mappings
+  - Borsh serialization compatibility notes
+  - Precision warnings for u64/i64 types
+  - Links to official type system documentation
 
 ### Changed
-- Enhanced developer experience with intelligent error recovery
-- Integrated with existing error diagnostics (v0.2.0)
 
-### Technical
-- Implemented `CodeActionProvider` for quick fixes
-- 5+ quick fix patterns
-- Context-aware fix suggestions based on error messages
-- Integrated with diagnostics API
+- **Updated Dependencies**:
+  - `vscode-languageclient` from `^8.1.0` to `^9.0.0` for better LSP support
+  - Removed `vscode-languageserver` dependency (not needed for client-only extension)
+- **Enhanced Extension Activation** - LSP client now starts automatically on extension load
+- **Improved Diagnostics** - CLI-based validation now serves as fallback to LSP diagnostics
+- **README Restructure** - Better organization with dedicated sections for LSP, type system, and smart editing
 
-### User Experience
-```
-// User types:
-struct Player {
-    wallet PublicKey    // Error detected
-}
+### Fixed
 
-// VSCode shows:
-💡 Quick Fix available
-   1. Add colon after field name
-   2. Add semicolon at end of line
+- Bracket matching documentation (previously undocumented despite being implemented)
+- Type mapping documentation (moved from internal CLAUDE.md to user-facing README)
+- LSP client initialization (was imported but never activated)
 
-// User presses Ctrl+. or clicks lightbulb
-// User selects "Add colon after field name"
-// Result:
-struct Player {
-    wallet: PublicKey;  // Fixed!
-}
-```
-
-## [0.4.0] - 2025-11-19
+## [0.5.0] - 2024-11-19
 
 ### Added
-- **Format-on-Save Support**: Automatic code formatting for .lumos files
-  - **Consistent Indentation**: Configurable indent size (2 or 4 spaces, default 4)
-  - **Attribute Sorting**: Alphabetically sorts attributes (#[account], #[derive], #[solana])
-  - **Field Alignment**: Aligns colons in struct fields for better readability
-  - **Smart Formatting**: Preserves comments and handles nested structures
-- **Manual Format Command**: Use Shift+Alt+F (or Cmd+Shift+I on Mac) to format
-- **Configurable Settings**:
-  - `lumos.format.indentSize` - Choose between 2 or 4 spaces (default: 4)
-  - `lumos.format.sortAttributes` - Enable/disable attribute sorting (default: true)
-  - `lumos.format.alignFields` - Enable/disable field alignment (default: true)
-- Format-on-save works with VSCode's `editor.formatOnSave` setting
+- Quick fixes for common errors
+- Code action provider for LUMOS diagnostics
+- Document formatting provider with configurable options
+- Auto-completion provider with 30+ completion items
 
 ### Changed
-- Enhanced code quality with automatic formatting
-- Improved readability with aligned struct fields
+- Improved syntax highlighting with 26 TextMate grammar rules
+- Enhanced validation with better error messages
 
-### Technical
-- Implemented `DocumentFormattingEditProvider` for LUMOS language
-- Smart indentation tracking for nested structures
-- Field alignment algorithm for struct fields
-
-### Example
-**Before formatting**:
-```lumos
-#[derive(Debug)]
-#[solana]
-#[account]
-struct PlayerAccount {
-wallet: PublicKey,
-   level:u16,
-experience:      u64,
-}
-```
-
-**After formatting**:
-```lumos
-#[account]
-#[derive(Debug)]
-#[solana]
-struct PlayerAccount {
-    wallet:     PublicKey,
-    level:      u16,
-    experience: u64,
-}
-```
-
-## [0.3.0] - 2025-11-19
+## [0.1.0] - Initial Release
 
 ### Added
-- **Intelligent Auto-Completion**: Context-aware code completion for LUMOS syntax
-  - **Primitive Types**: All unsigned (u8-u128) and signed (i8-i128) integers, bool, String
-  - **Solana Types**: PublicKey, Signature with descriptions
-  - **Complex Types**: Vec<T> and Option<T> with snippet placeholders
-  - **Attributes**: #[solana], #[account], #[derive(...)] with documentation
-  - **Keywords**: struct, enum, pub with full template snippets
-- Context-aware suggestions:
-  - Type completions appear after colon (`:`)
-  - Attribute completions inside `#[...]`
-  - Keyword completions at line start
-- Inline documentation for each completion item
-- Smart snippet insertion:
-  - `Vec<$1>` - cursor inside angle brackets
-  - `Option<$1>` - cursor inside angle brackets
-  - `struct ${1:Name} { ... }` - multi-tab-stop template
-  - `enum ${1:Name} { ... }` - multi-tab-stop template
-  - `#[derive(${1:Debug})]` - cursor in parentheses
+- Syntax highlighting for `.lumos` files
+- Code snippets for common patterns
+- Bracket matching and auto-closing
+- Comment toggling support
+- Code generation commands (`LUMOS: Generate Code`, `LUMOS: Validate Schema`)
+- Auto-generate on save option
+- Basic IntelliSense
 
-### Changed
-- Enhanced developer experience with IntelliSense support
-- Trigger characters: `.`, `<`, `#`, `[`, `:`
+---
 
-### Technical
-- Implemented `CompletionItemProvider` for LUMOS language
-- Added 20+ completion items with rich documentation
-- Context detection for smart filtering
+**Legend:**
+- `Added` - New features
+- `Changed` - Changes in existing functionality
+- `Deprecated` - Soon-to-be removed features
+- `Removed` - Removed features
+- `Fixed` - Bug fixes
+- `Security` - Security improvements
 
-## [0.2.0] - 2025-11-19
-
-### Added
-- **Error Diagnostics**: Real-time syntax error detection in `.lumos` files
-  - Red squiggles appear for syntax errors
-  - Errors detected by running `lumos validate` CLI
-  - Intelligent error location detection based on error context
-  - Debounced validation (500ms delay after typing)
-  - Validation on file open, change, and save
-  - Respects `lumos.validation.enabled` setting
-- Smart error positioning:
-  - Missing colon detection (e.g., `wallet PublicKey` → suggests colon after `wallet`)
-  - Missing semicolon detection
-  - Missing brace detection
-- Error messages prefixed with "LUMOS:" for clarity
-
-### Changed
-- Improved error feedback workflow
-- Validation now runs automatically in background
-
-### Technical
-- Integrated `lumos validate` CLI for accurate error detection
-- Added diagnostic collection with 500ms debouncing
-- Context-aware error location finder
-
-## [0.1.0] - 2025-11-17
-
-### Added
-- Initial release of LUMOS VSCode extension
-- Syntax highlighting for `.lumos` schema files
-- TextMate grammar with support for:
-  - Keywords (struct, enum, pub, etc.)
-  - Primitive types (u8-u128, i8-i128, f32, f64, bool, String)
-  - Solana types (PublicKey, Pubkey, Signature, Keypair)
-  - Attributes (#[solana], #[account], #[key], #[max(n)])
-  - Comments (line and block)
-  - Numbers (decimal, hex, binary, octal)
-- Language configuration:
-  - Auto-closing brackets and quotes
-  - Comment toggling (Ctrl+/)
-  - Smart indentation
-  - Bracket matching
-- Code snippets for common patterns:
-  - Solana structs and accounts
-  - Unit, tuple, and struct enums
-  - Field shortcuts
-  - Attribute shortcuts
-- Commands:
-  - "LUMOS: Generate Code" - Generate Rust and TypeScript
-  - "LUMOS: Validate Schema" - Validate schema syntax
-- Settings:
-  - `lumos.validation.enabled` - Enable/disable validation
-  - `lumos.codeGeneration.autoGenerate` - Auto-generate on save
-- Auto-generation on save (optional)
-
-### Planned for Future Releases
-- Language server for real-time validation
-- IntelliSense and autocomplete
-- Go-to-definition support
-- Hover documentation
-- Diagnostic messages in editor
+[0.6.0]: https://github.com/getlumos/vscode-lumos/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/getlumos/vscode-lumos/releases/tag/v0.5.0
+[0.1.0]: https://github.com/getlumos/vscode-lumos/releases/tag/v0.1.0

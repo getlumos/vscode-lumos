@@ -2,7 +2,7 @@
   "name": "lumos",
   "displayName": "LUMOS Language Support",
   "description": "Write once. Deploy Everywhere. Syntax highlighting, IntelliSense, and validation for LUMOS schema language.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "getlumos",
   "author": {
     "name": "RECTOR",
@@ -90,6 +90,27 @@
           "type": "boolean",
           "default": true,
           "description": "Align colons in struct fields"
+        },
+        "lumos.lsp.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable LUMOS Language Server Protocol integration"
+        },
+        "lumos.lsp.path": {
+          "type": "string",
+          "default": "lumos-lsp",
+          "description": "Path to LUMOS Language Server binary (lumos-lsp)"
+        },
+        "lumos.lsp.autoInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically install LUMOS Language Server if not found"
+        },
+        "lumos.lsp.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Traces communication between VS Code and the language server (for debugging)"
         }
       }
     },
@@ -123,7 +144,6 @@
     "@vscode/vsce": "^2.19.0"
   },
   "dependencies": {
-    "vscode-languageclient": "^8.1.0",
-    "vscode-languageserver": "^8.1.0"
+    "vscode-languageclient": "^9.0.0"
   }
 }

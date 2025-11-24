@@ -616,10 +616,158 @@ class LumosCompletionProvider implements vscode.CompletionItemProvider {
     }
 }
 
+/**
+ * Find lumos-lsp binary in PATH
+ */
+async function findLSPInPath(): Promise<string | undefined> {
+    try {
+        const command = process.platform === 'win32' ? 'where lumos-lsp' : 'which lumos-lsp';
+        const { stdout } = await execAsync(command);
+        const path = stdout.trim();
+        return path || undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+/**
+ * Install lumos-lsp using cargo
+ */
+async function installLSPServer(): Promise<string | undefined> {
+    return await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Installing LUMOS Language Server...',
+        cancellable: false
+    }, async (progress) => {
+        progress.report({ message: 'Running: cargo install lumos-lsp' });
+
+        try {
+            await execAsync('cargo install lumos-lsp', { timeout: 300000 }); // 5 minute timeout
+            vscode.window.showInformationMessage('LUMOS Language Server installed successfully!');
+            return await findLSPInPath();
+        } catch (error: any) {
+            vscode.window.showErrorMessage(
+                `Failed to install LUMOS Language Server: ${error.message}\n\nPlease install manually: cargo install lumos-lsp`
+            );
+            return undefined;
+        }
+    });
+}
+
+/**
+ * Ensure lumos-lsp server is available (find or install)
+ */
+async function ensureLSPServer(): Promise<string | undefined> {
+    const config = vscode.workspace.getConfiguration('lumos');
+    const customPath = config.get<string>('lsp.path', 'lumos-lsp');
+
+    // First check if custom path or default path exists
+    let lspPath = await findLSPInPath();
+
+    if (lspPath) {
+        console.log(`Found LUMOS LSP at: ${lspPath}`);
+        return lspPath;
+    }
+
+    // Not found, check if auto-install is enabled
+    const autoInstall = config.get<boolean>('lsp.autoInstall', true);
+
+    if (!autoInstall) {
+        vscode.window.showWarningMessage(
+            'LUMOS Language Server not found. Auto-install is disabled.',
+            'Install Manually'
+        ).then(selection => {
+            if (selection === 'Install Manually') {
+                vscode.env.openExternal(vscode.Uri.parse('https://crates.io/crates/lumos-lsp'));
+            }
+        });
+        return undefined;
+    }
+
+    // Prompt user to install
+    const choice = await vscode.window.showInformationMessage(
+        'LUMOS Language Server (lumos-lsp) not found. Would you like to install it now?\n\nThis requires Rust and cargo to be installed.',
+        'Install Now',
+        'Not Now',
+        'Learn More'
+    );
+
+    if (choice === 'Install Now') {
+        return await installLSPServer();
+    } else if (choice === 'Learn More') {
+        vscode.env.openExternal(vscode.Uri.parse('https://crates.io/crates/lumos-lsp'));
+    }
+
+    return undefined;
+}
+
+/**
+ * Initialize and start the LSP client
+ */
+async function startLSPClient(context: vscode.ExtensionContext): Promise<void> {
+    const config = vscode.workspace.getConfiguration('lumos');
+    const lspEnabled = config.get<boolean>('lsp.enable', true);
+
+    if (!lspEnabled) {
+        console.log('LUMOS LSP is disabled in settings');
+        return;
+    }
+
+    // Ensure LSP server binary is available
+    const lspPath = await ensureLSPServer();
+
+    if (!lspPath) {
+        console.log('LUMOS LSP server not available, skipping LSP activation');
+        return;
+    }
+
+    // Configure server options
+    const serverOptions: ServerOptions = {
+        command: lspPath,
+        args: []
+    };
+
+    // Configure client options
+    const traceLevel = config.get<string>('lsp.trace.server', 'off');
+    const clientOptions: LanguageClientOptions = {
+        documentSelector: [{ scheme: 'file', language: 'lumos' }],
+        synchronize: {
+            fileEvents: vscode.workspace.createFileSystemWatcher('**/*.lumos')
+        },
+        outputChannelName: 'LUMOS Language Server',
+        traceOutputChannel: vscode.window.createOutputChannel('LUMOS LSP Trace')
+    };
+
+    // Create and start the LSP client
+    client = new LanguageClient(
+        'lumos-lsp',
+        'LUMOS Language Server',
+        serverOptions,
+        clientOptions
+    );
+
+    try {
+        await client.start();
+        console.log('LUMOS Language Server started successfully');
+        vscode.window.showInformationMessage('LUMOS Language Server is now active!');
+    } catch (error: any) {
+        console.error('Failed to start LUMOS Language Server:', error);
+        vscode.window.showErrorMessage(
+            `Failed to start LUMOS Language Server: ${error.message}`
+        );
+        client = undefined;
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     console.log('LUMOS extension activated');
 
-    // Create diagnostic collection
+    // Start Language Server Protocol client
+    startLSPClient(context).catch(error => {
+        console.error('Error starting LUMOS LSP client:', error);
+    });
+
+    // Create diagnostic collection (for CLI-based validation fallback)
     diagnosticCollection = vscode.languages.createDiagnosticCollection('lumos');
     context.subscriptions.push(diagnosticCollection);
 
