@@ -241,6 +241,54 @@ Initial release of LUMOS VSCode extension:
 - ✅ Code generation commands
 - ✅ Auto-generate on save option
 
+## Publishing
+
+This extension is automatically published to the VS Code Marketplace via GitHub Actions when a new release is created.
+
+### Automated Publishing Workflow
+
+The repository includes a GitHub Actions workflow that automatically:
+1. Compiles and lints the extension
+2. Packages the extension into a `.vsix` file
+3. Publishes to the VS Code Marketplace
+4. Uploads the `.vsix` artifact for download
+
+### Creating a New Release
+
+To publish a new version:
+
+1. Update the version in `package.json`:
+   ```bash
+   npm version patch  # or minor, or major
+   ```
+
+2. Create a GitHub release:
+   ```bash
+   git tag v0.6.0
+   git push origin v0.6.0
+   gh release create v0.6.0 --title "v0.6.0" --notes "Release notes here"
+   ```
+
+3. The workflow will automatically publish to the marketplace within a few minutes.
+
+### Required Secret
+
+The workflow requires a `VSCE_PAT` (Visual Studio Code Extensions Personal Access Token) secret to be configured in the repository settings.
+
+**To set up the secret:**
+1. Create a Personal Access Token at https://dev.azure.com with:
+   - Organization: All accessible organizations
+   - Scopes: `Marketplace (Manage)`
+2. Add the token as a repository secret named `VSCE_PAT` at:
+   https://github.com/getlumos/vscode-lumos/settings/secrets/actions
+
+### Manual Publishing
+
+To manually trigger the workflow without creating a release:
+1. Go to Actions tab → "Publish to VS Code Marketplace"
+2. Click "Run workflow"
+3. Optionally specify a version or leave empty to use `package.json` version
+
 ## Contributing
 
 Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/getlumos/vscode-lumos/issues).
