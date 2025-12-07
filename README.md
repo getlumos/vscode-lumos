@@ -1,8 +1,15 @@
 # LUMOS Language Support for VSCode
 
+[![Visual Studio Marketplace Version](https://img.shields.io/visual-studio-marketplace/v/getlumos.lumos?label=VS%20Marketplace&logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=getlumos.lumos)
+[![Visual Studio Marketplace Installs](https://img.shields.io/visual-studio-marketplace/i/getlumos.lumos?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=getlumos.lumos)
+[![Visual Studio Marketplace Rating](https://img.shields.io/visual-studio-marketplace/r/getlumos.lumos?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=getlumos.lumos)
+[![GitHub](https://img.shields.io/github/license/getlumos/vscode-lumos)](LICENSE-MIT)
+
 > **Write once. Deploy Everywhere.**
 
 Official VSCode extension for the LUMOS schema language - a type-safe, cross-language schema definition language for Solana development.
+
+**What is LUMOS?** A powerful code generation framework that eliminates the pain of maintaining duplicate type definitions across TypeScript and Rust in Solana development. Write your data structures once in `.lumos` syntax, and automatically generate perfectly synchronized code for both languages with guaranteed Borsh serialization compatibility.
 
 ## Features
 
@@ -296,8 +303,10 @@ Found a bug or have a feature request? Please open an issue on [GitHub](https://
 ## Related Repositories
 
 - **LUMOS Core:** https://github.com/getlumos/lumos
-- **Language Server:** Published as `lumos-lsp` on crates.io (coming soon)
-- **Documentation:** https://lumos-lang.org
+- **Language Server:** https://crates.io/crates/lumos-lsp
+- **Documentation:** https://github.com/getlumos/docs-lumos
+- **GitHub Action:** https://github.com/marketplace/actions/lumos-generate
+- **Awesome LUMOS:** https://github.com/getlumos/awesome-lumos
 
 ## License
 
