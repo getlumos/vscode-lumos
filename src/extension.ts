@@ -338,7 +338,7 @@ class LumosFormattingProvider implements vscode.DocumentFormattingEditProvider {
         let attributes: string[] = [];
 
         for (let i = 0; i < lines.length; i++) {
-            let line = lines[i].trim();
+            const line = lines[i].trim();
 
             // Skip empty lines
             if (line === '') {
@@ -662,7 +662,7 @@ async function ensureLSPServer(): Promise<string | undefined> {
     const customPath = config.get<string>('lsp.path', 'lumos-lsp');
 
     // First check if custom path or default path exists
-    let lspPath = await findLSPInPath();
+    const lspPath = await findLSPInPath();
 
     if (lspPath) {
         console.log(`Found LUMOS LSP at: ${lspPath}`);
