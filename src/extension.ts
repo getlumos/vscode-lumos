@@ -26,7 +26,7 @@ async function validateDocument(document: vscode.TextDocument): Promise<void> {
         const filePath = document.fileName;
 
         // Run lumos validate command
-        const { stdout, stderr } = await execAsync(`lumos validate "${filePath}"`, {
+        const { stderr } = await execAsync(`lumos validate "${filePath}"`, {
             cwd: path.dirname(filePath),
             timeout: 5000
         });
@@ -155,7 +155,7 @@ class LumosCodeActionProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         range: vscode.Range | vscode.Selection,
         context: vscode.CodeActionContext,
-        token: vscode.CancellationToken
+        _token: vscode.CancellationToken
     ): vscode.CodeAction[] {
         const codeActions: vscode.CodeAction[] = [];
 
@@ -170,25 +170,25 @@ class LumosCodeActionProvider implements vscode.CodeActionProvider {
             // Quick fix: Missing colon
             if (message.includes('expected `:`') || message.includes('expected ":"')) {
                 const fix = this.createAddColonFix(document, diagnostic);
-                if (fix) codeActions.push(fix);
+                if (fix) {codeActions.push(fix);}
             }
 
             // Quick fix: Missing semicolon
             if (message.includes('expected `;`') || message.includes('expected ";"') || message.includes('semicolon')) {
                 const fix = this.createAddSemicolonFix(document, diagnostic);
-                if (fix) codeActions.push(fix);
+                if (fix) {codeActions.push(fix);}
             }
 
             // Quick fix: Wrong type casing (pubkey → PublicKey)
             if (message.includes('pubkey') || message.includes('unknown type')) {
                 const fix = this.createFixTypeCasingFix(document, diagnostic);
-                if (fix) codeActions.push(fix);
+                if (fix) {codeActions.push(fix);}
             }
 
             // Quick fix: Missing #[solana] attribute
             if (message.includes('solana') && message.includes('attribute')) {
                 const fix = this.createAddSolanaAttributeFix(document, diagnostic);
-                if (fix) codeActions.push(fix);
+                if (fix) {codeActions.push(fix);}
             }
         }
 
@@ -201,7 +201,7 @@ class LumosCodeActionProvider implements vscode.CodeActionProvider {
 
         // Find field name (word before cursor)
         const match = /(\w+)\s+(\w+)/.exec(lineText);
-        if (!match) return undefined;
+        if (!match) {return undefined;}
 
         const fieldName = match[1];
         const insertPos = new vscode.Position(diagnostic.range.start.line, line.text.indexOf(fieldName) + fieldName.length);
@@ -269,7 +269,7 @@ class LumosCodeActionProvider implements vscode.CodeActionProvider {
     }
 
     private createAddSolanaAttributeFix(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | undefined {
-        const line = document.lineAt(diagnostic.range.start.line);
+        const _line = document.lineAt(diagnostic.range.start.line);
 
         // Find the struct declaration line
         let structLine = diagnostic.range.start.line;
@@ -300,8 +300,8 @@ class LumosCodeActionProvider implements vscode.CodeActionProvider {
 class LumosFormattingProvider implements vscode.DocumentFormattingEditProvider {
     provideDocumentFormattingEdits(
         document: vscode.TextDocument,
-        options: vscode.FormattingOptions,
-        token: vscode.CancellationToken
+        _options: vscode.FormattingOptions,
+        _token: vscode.CancellationToken
     ): vscode.TextEdit[] {
         const config = vscode.workspace.getConfiguration('lumos');
         const indentSize = config.get<number>('format.indentSize', 4);
@@ -466,8 +466,8 @@ class LumosCompletionProvider implements vscode.CompletionItemProvider {
     provideCompletionItems(
         document: vscode.TextDocument,
         position: vscode.Position,
-        token: vscode.CancellationToken,
-        context: vscode.CompletionContext
+        _token: vscode.CancellationToken,
+        _context: vscode.CompletionContext
     ): vscode.CompletionItem[] {
         const linePrefix = document.lineAt(position).text.substring(0, position.character);
         const completions: vscode.CompletionItem[] = [];
@@ -659,7 +659,7 @@ async function installLSPServer(): Promise<string | undefined> {
  */
 async function ensureLSPServer(): Promise<string | undefined> {
     const config = vscode.workspace.getConfiguration('lumos');
-    const customPath = config.get<string>('lsp.path', 'lumos-lsp');
+    const _customPath = config.get<string>('lsp.path', 'lumos-lsp');
 
     // First check if custom path or default path exists
     const lspPath = await findLSPInPath();
@@ -704,7 +704,7 @@ async function ensureLSPServer(): Promise<string | undefined> {
 /**
  * Initialize and start the LSP client
  */
-async function startLSPClient(context: vscode.ExtensionContext): Promise<void> {
+async function startLSPClient(_context: vscode.ExtensionContext): Promise<void> {
     const config = vscode.workspace.getConfiguration('lumos');
     const lspEnabled = config.get<boolean>('lsp.enable', true);
 
@@ -728,7 +728,7 @@ async function startLSPClient(context: vscode.ExtensionContext): Promise<void> {
     };
 
     // Configure client options
-    const traceLevel = config.get<string>('lsp.trace.server', 'off');
+    const _traceLevel = config.get<string>('lsp.trace.server', 'off');
     const clientOptions: LanguageClientOptions = {
         documentSelector: [{ scheme: 'file', language: 'lumos' }],
         synchronize: {

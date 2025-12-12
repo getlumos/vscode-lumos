@@ -78,7 +78,10 @@
         "lumos.format.indentSize": {
           "type": "number",
           "default": 4,
-          "enum": [2, 4],
+          "enum": [
+            2,
+            4
+          ],
           "description": "Number of spaces for indentation (2 or 4)"
         },
         "lumos.format.sortAttributes": {
@@ -108,7 +111,11 @@
         },
         "lumos.lsp.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "Traces communication between VS Code and the language server (for debugging)"
         }
@@ -131,17 +138,17 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts",
+    "lint": "eslint src/**/*.ts",
     "package": "vsce package"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/node": "^24.10.1",
     "@types/vscode": "^1.75.0",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^8.0.0",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.17.0",
     "typescript": "^5.0.0",
-    "@vscode/vsce": "^3.7.1"
+    "typescript-eslint": "^8.18.0"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.0"
