@@ -16,7 +16,7 @@
   },
   "homepage": "https://lumos-lang.org",
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.108.0"
   },
   "categories": [
     "Programming Languages",
